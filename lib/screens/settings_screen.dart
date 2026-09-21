@@ -4,8 +4,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../app_state.dart';
+import '../widgets/ideon_modal.dart';
 
 /// Screen individual de Configuración (Settings) para IDEON.
 /// Diseñada con estética Dark Premium, agrupaciones claras y controles interactivos.
@@ -21,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Estado de Seguridad
   bool get _appLockEnabled => AppState.instance.appLockEnabled;
   bool get _biometricEnabled => AppState.instance.biometricEnabled;
+  final LocalAuthentication _auth = LocalAuthentication();
 
   int get _selectedThemeIndex => AppState.instance.themeIndex;
 
@@ -224,11 +227,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               subtitle: 'Requiere código para abrir la app',
                               value: _appLockEnabled,
                               onChanged: (val) {
-                                AppState.instance.updatePreferences(
-                                  appLockEnabled: val,
-                                );
-                                if (val && mounted) {
-                                  Navigator.of(context).pushNamed('/lock');
+                                if (val) {
+                                  _configurePin();
+                                } else {
+                                  AppState.instance.updatePreferences(
+                                    appLockEnabled: false,
+                                  );
                                 }
                               },
                             ),
@@ -240,18 +244,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               subtitle: 'Desbloquea con rostro o huella',
                               value: _biometricEnabled,
                               onChanged: (val) {
-                                AppState.instance.updatePreferences(
-                                  biometricEnabled: val,
-                                );
-                                if (val && mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Autenticación biométrica activada.',
-                                      ),
-                                    ),
-                                  );
-                                }
+                                _toggleBiometrics(val);
                               },
                             ),
                           ],
@@ -364,6 +357,208 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _configurePin() async {
+    final pinController = TextEditingController();
+    final confirmationController = TextEditingController();
+    var pinVisible = false;
+    var confirmationVisible = false;
+    final values = await showDialog<List<String>>(
+      context: context,
+      builder: (context) => MediaQuery.removeViewInsets(
+        context: context,
+        removeBottom: true,
+        child: StatefulBuilder(
+          builder: (context, setModalState) => IdeonModal(
+            icon: Icons.lock_outline_rounded,
+            eyebrow: 'Seguridad',
+            title: 'Configurar código',
+            actions: [
+              ideonSecondaryButton(
+                label: 'Cancelar',
+                onPressed: () => Navigator.pop(context),
+              ),
+              ideonPrimaryButton(
+                label: 'Guardar código',
+                icon: Icons.check_rounded,
+                onPressed: () => Navigator.pop(context, [
+                  pinController.text,
+                  confirmationController.text,
+                ]),
+              ),
+            ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Crea un código para proteger tu espacio personal.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                TextField(
+                  controller: pinController,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  maxLength: 4,
+                  obscureText: !pinVisible,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    letterSpacing: 5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  decoration:
+                      ideonInputDecoration(
+                        label: 'Nuevo código',
+                        icon: Icons.password_rounded,
+                        hint: '4 dígitos',
+                      ).copyWith(
+                        counterText: '',
+                        suffixIcon: IconButton(
+                          onPressed: () =>
+                              setModalState(() => pinVisible = !pinVisible),
+                          icon: Icon(
+                            pinVisible
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                          ),
+                        ),
+                      ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: confirmationController,
+                  keyboardType: TextInputType.number,
+                  maxLength: 4,
+                  obscureText: !confirmationVisible,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    letterSpacing: 5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  decoration:
+                      ideonInputDecoration(
+                        label: 'Confirmar código',
+                        icon: Icons.verified_user_outlined,
+                        hint: 'Repite los 4 dígitos',
+                      ).copyWith(
+                        counterText: '',
+                        suffixIcon: IconButton(
+                          onPressed: () => setModalState(
+                            () => confirmationVisible = !confirmationVisible,
+                          ),
+                          icon: Icon(
+                            confirmationVisible
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                          ),
+                        ),
+                      ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Lo necesitarás cada vez que regreses a la aplicación.',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    pinController.dispose();
+    confirmationController.dispose();
+    if (!mounted || values == null) return;
+    final pin = values[0];
+    if (pin != values[1]) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Los códigos no coinciden.')),
+      );
+      return;
+    }
+    try {
+      await AppState.instance.setAppPin(pin);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Código de bloqueo configurado.')),
+        );
+      }
+    } on FormatException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+  }
+
+  Future<void> _toggleBiometrics(bool enabled) async {
+    if (!enabled) {
+      AppState.instance.updatePreferences(biometricEnabled: false);
+      return;
+    }
+    if (!AppState.instance.appPinConfigured) {
+      await _configurePin();
+      if (!mounted || !AppState.instance.appPinConfigured) return;
+    }
+    try {
+      final supported = await _auth.isDeviceSupported();
+      final enrolled = await _auth.getAvailableBiometrics();
+      if (!supported || enrolled.isEmpty) {
+        throw Exception(
+          'Configura primero una huella o rostro en los ajustes del dispositivo.',
+        );
+      }
+      final authenticated = await _auth.authenticate(
+        localizedReason: 'Confirma la biometría para proteger Ideon',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+          useErrorDialogs: true,
+        ),
+      );
+      if (!authenticated) return;
+      AppState.instance.updatePreferences(
+        biometricEnabled: true,
+        appLockEnabled: true,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo activar la biometría: $error')),
+      );
+      return;
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Biometría activada. Configúrala en los ajustes de seguridad del dispositivo.',
+          ),
+        ),
+      );
+    }
   }
 
   // Encabezado de Sección

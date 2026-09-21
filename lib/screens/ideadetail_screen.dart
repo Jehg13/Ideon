@@ -100,10 +100,9 @@ class IdeaDetailScreen extends StatelessWidget {
 
     final projectName = nameController.text.trim();
     final projectDescription = descriptionController.text.trim();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      nameController.dispose();
-      descriptionController.dispose();
-    });
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    nameController.dispose();
+    descriptionController.dispose();
     if (shouldCreate == true && projectName.isNotEmpty) {
       AppState.instance.addProject(
         name: projectName,
@@ -114,6 +113,84 @@ class IdeaDetailScreen extends StatelessWidget {
       if (context.mounted) {
         Navigator.of(context).pushReplacementNamed('/projects');
       }
+    }
+  }
+
+  Future<void> _editCapture(BuildContext context) async {
+    final item = capture;
+    if (item == null) return;
+    final titleController = TextEditingController(text: item.title);
+    var selectedType = normalizeCaptureType(item.type);
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => IdeonModal(
+          icon: Icons.edit_outlined,
+          eyebrow: 'Editar captura',
+          title: 'Actualizar contenido',
+          actions: [
+            ideonSecondaryButton(
+              label: 'Cancelar',
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+            ideonPrimaryButton(
+              label: 'Guardar cambios',
+              icon: Icons.check_rounded,
+              onPressed: () => Navigator.pop(dialogContext, {
+                'title': titleController.text,
+                'type': selectedType,
+              }),
+            ),
+          ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                autofocus: true,
+                decoration: ideonInputDecoration(
+                  label: 'Título',
+                  icon: Icons.title_rounded,
+                ),
+              ),
+              const SizedBox(height: 14),
+              DropdownButtonFormField<String>(
+                initialValue: selectedType,
+                decoration: ideonInputDecoration(
+                  label: 'Tipo',
+                  icon: Icons.category_outlined,
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'Idea', child: Text('Idea')),
+                  DropdownMenuItem(value: 'Improvement', child: Text('Mejora')),
+                  DropdownMenuItem(value: 'Task', child: Text('Tarea')),
+                  DropdownMenuItem(value: 'Bug', child: Text('Error')),
+                  DropdownMenuItem(value: 'Note', child: Text('Nota')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => selectedType = value);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    titleController.dispose();
+    if (result == null || result['title']!.trim().isEmpty) return;
+    AppState.instance.updateCapture(
+      id: item.id,
+      title: result['title']!,
+      type: result['type']!,
+      project: item.project,
+      priority: item.priority,
+      tags: item.tags,
+    );
+    if (context.mounted) {
+      Navigator.of(
+        context,
+      ).pushReplacementNamed('/idea-detail', arguments: item);
     }
   }
 
@@ -218,10 +295,14 @@ class IdeaDetailScreen extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF00F0FF).withValues(alpha: 0.1),
+                              color: const Color(
+                                0xFF00F0FF,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: const Color(0xFF00F0FF).withValues(alpha: 0.3),
+                                color: const Color(
+                                  0xFF00F0FF,
+                                ).withValues(alpha: 0.3),
                                 width: 0.8,
                               ),
                             ),
@@ -436,6 +517,7 @@ class IdeaDetailScreen extends StatelessWidget {
                               child: _buildSecondaryActionButton(
                                 'Editar',
                                 Icons.edit_outlined,
+                                onPressed: () => _editCapture(context),
                               ),
                             ),
                             const SizedBox(width: 10),

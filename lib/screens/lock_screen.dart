@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
+
+import '../app_state.dart';
 
 /// Screen individual de Pantalla de Bloqueo (Pin Lock / Biometrics) para IDEON.
 /// Diseñada con estética Dark Premium / Midnight Black, acentos Electric Blue & Indigo,
@@ -14,6 +17,7 @@ class _LockScreenState extends State<LockScreen> {
   String _pin = '';
   final int _pinLength = 4;
   bool _isError = false;
+  final LocalAuthentication _auth = LocalAuthentication();
 
   void _onKeyPress(String value) {
     if (_pin.length < _pinLength) {
@@ -39,8 +43,7 @@ class _LockScreenState extends State<LockScreen> {
   }
 
   void _verifyPin() {
-    // Ejemplo de PIN correcto: '1234'
-    if (_pin == '1234') {
+    if (_pin == AppState.instance.appPin) {
       // Éxito: Desbloquear app o navegar
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
@@ -63,29 +66,36 @@ class _LockScreenState extends State<LockScreen> {
     }
   }
 
-  void _triggerBiometrics() {
-    // Simulación de autenticación biométrica (Face ID / Fingerprint)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Theme.of(context).cardColor,
-        content: Row(
-          children: [
-            Icon(Icons.fingerprint_rounded, color: Color(0xFF00F0FF), size: 20),
-            SizedBox(width: 10),
-            Text(
-              'Autenticando con biometría...',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 13,
-              ),
-            ),
-          ],
+  Future<void> _triggerBiometrics() async {
+    try {
+      final available =
+          await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
+      if (!available) {
+        throw Exception('Este dispositivo no tiene biometría configurada.');
+      }
+      final authenticated = await _auth.authenticate(
+        localizedReason: 'Confirma tu identidad para abrir Ideon',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+          useErrorDialogs: true,
         ),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      );
+      if (!mounted) return;
+      if (authenticated) {
+        AppState.instance.skipNextLockAfterBiometric = true;
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo usar la biometría: $error')),
+      );
+    }
   }
 
   @override
@@ -294,7 +304,7 @@ class _LockScreenState extends State<LockScreen> {
                         ),
                         SizedBox(width: 8),
                         Text(
-                          'Use biometric authentication',
+                          'Usar autenticación biométrica',
                           style: TextStyle(
                             color: Color(0xFF94A3B8),
                             fontSize: 12.5,

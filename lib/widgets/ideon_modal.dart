@@ -28,111 +28,128 @@ class IdeonModal extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Container(
-        decoration: BoxDecoration(
-          color: surface,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: border),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x66000000),
-              blurRadius: 32,
-              offset: Offset(0, 16),
-            ),
-          ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.86,
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Stack(
-            children: [
-              Positioned(
-                top: -70,
-                right: -45,
-                child: Container(
-                  width: 170,
-                  height: 170,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.16),
-                        blurRadius: 70,
-                      ),
-                    ],
-                  ),
-                ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: border),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x66000000),
+                blurRadius: 32,
+                offset: Offset(0, 16),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2563EB).withValues(alpha: 0.16),
-                            borderRadius: BorderRadius.circular(13),
-                            border: Border.all(
-                              color: const Color(0xFF38BDF8).withValues(alpha: 0.25),
-                            ),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: const Color(0xFF38BDF8),
-                            size: 21,
-                          ),
-                        ),
-                        const SizedBox(width: 13),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                eyebrow.toUpperCase(),
-                                style: TextStyle(
-                                  color: isLight
-                                      ? const Color(0xFF2563EB)
-                                      : const Color(0xFF38BDF8),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.4,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                title,
-                                style: TextStyle(
-                                  color: primary,
-                                  fontSize: 21,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(Icons.close_rounded),
-                          color: secondary,
-                          tooltip: 'Cerrar',
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -70,
+                  right: -45,
+                  child: Container(
+                    width: 170,
+                    height: 170,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF6366F1,
+                          ).withValues(alpha: 0.16),
+                          blurRadius: 70,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 22),
-                    child,
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: actions,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFF2563EB,
+                                ).withValues(alpha: 0.16),
+                                borderRadius: BorderRadius.circular(13),
+                                border: Border.all(
+                                  color: const Color(
+                                    0xFF38BDF8,
+                                  ).withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Icon(
+                                icon,
+                                color: const Color(0xFF38BDF8),
+                                size: 21,
+                              ),
+                            ),
+                            const SizedBox(width: 13),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    eyebrow.toUpperCase(),
+                                    style: TextStyle(
+                                      color: isLight
+                                          ? const Color(0xFF2563EB)
+                                          : const Color(0xFF38BDF8),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    title,
+                                    style: TextStyle(
+                                      color: primary,
+                                      fontSize: 21,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              icon: Icon(Icons.close_rounded),
+                              color: secondary,
+                              tooltip: 'Cerrar',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 22),
+                        child,
+                        const SizedBox(height: 24),
+                        Wrap(
+                          alignment: WrapAlignment.end,
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: actions,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -156,7 +173,9 @@ InputDecoration ideonInputDecoration({
     contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(13),
-      borderSide: BorderSide(color: const Color(0xFF94A3B8).withValues(alpha: 0.45)),
+      borderSide: BorderSide(
+        color: const Color(0xFF94A3B8).withValues(alpha: 0.45),
+      ),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(13),

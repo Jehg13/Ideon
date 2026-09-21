@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../app_state.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -64,7 +66,14 @@ class _SplashScreenState extends State<SplashScreen>
         return;
       }
 
-      Navigator.of(context).pushReplacementNamed('/onboarding');
+      Navigator.of(context).pushReplacementNamed(
+        AppState.instance.onboardingCompleted
+            ? (AppState.instance.appLockEnabled &&
+                    AppState.instance.appPinConfigured
+                ? '/lock'
+                : '/home')
+            : '/onboarding',
+      );
     });
   }
 
@@ -118,7 +127,13 @@ class _SplashScreenState extends State<SplashScreen>
                         child: SizedBox(
                           width: 80,
                           height: 80,
-                          child: CustomPaint(painter: IdeonLogoPainter()),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'image.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                       ),
                     );

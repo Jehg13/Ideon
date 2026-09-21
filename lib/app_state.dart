@@ -20,11 +20,11 @@ class CaptureItem {
        createdAt = createdAt ?? DateTime.now();
 
   final String id;
-  final String title;
-  final String type;
+  String title;
+  String type;
   String project;
-  final String priority;
-  final List<String> tags;
+  String priority;
+  List<String> tags;
   final DateTime createdAt;
   bool isCompleted = false;
 
@@ -107,6 +107,9 @@ class AppState extends ChangeNotifier {
   static const _defaultTypeKey = 'default_type';
   static const _appLockEnabledKey = 'app_lock_enabled';
   static const _biometricEnabledKey = 'biometric_enabled';
+  static const _onboardingCompletedKey = 'onboarding_completed';
+  static const _appPinKey = 'app_pin';
+  static const _appPinConfiguredKey = 'app_pin_configured';
 
   final List<CaptureItem> _captures = [];
   final List<ProjectRecord> _projects = [];
@@ -116,6 +119,10 @@ class AppState extends ChangeNotifier {
   String defaultType = 'Idea';
   bool appLockEnabled = false;
   bool biometricEnabled = false;
+  bool onboardingCompleted = false;
+  String appPin = '1234';
+  bool appPinConfigured = false;
+  bool skipNextLockAfterBiometric = false;
 
   Future<void> loadPreferences() async {
     await _loadDatabase();
@@ -133,6 +140,16 @@ class AppState extends ChangeNotifier {
           preferences.getBool(_appLockEnabledKey) ?? appLockEnabled;
       biometricEnabled =
           preferences.getBool(_biometricEnabledKey) ?? biometricEnabled;
+      onboardingCompleted =
+          preferences.getBool(_onboardingCompletedKey) ?? onboardingCompleted;
+      appPin = preferences.getString(_appPinKey) ?? appPin;
+      appPinConfigured =
+          preferences.getBool(_appPinConfiguredKey) ?? appPinConfigured;
+      if (!appPinConfigured && (appLockEnabled || biometricEnabled)) {
+        appLockEnabled = false;
+        biometricEnabled = false;
+        unawaited(_savePreferences());
+      }
     } on MissingPluginException catch (error) {
       debugPrint('Preferencias no disponibles en esta ejecución: $error');
     }
@@ -319,6 +336,8 @@ class AppState extends ChangeNotifier {
     String? defaultType,
     bool? appLockEnabled,
     bool? biometricEnabled,
+    bool? onboardingCompleted,
+    String? appPin,
   }) {
     if (quickCaptureEnabled != null) {
       this.quickCaptureEnabled = quickCaptureEnabled;
@@ -330,6 +349,10 @@ class AppState extends ChangeNotifier {
     }
     if (appLockEnabled != null) this.appLockEnabled = appLockEnabled;
     if (biometricEnabled != null) this.biometricEnabled = biometricEnabled;
+    if (onboardingCompleted != null) {
+      this.onboardingCompleted = onboardingCompleted;
+    }
+    if (appPin != null && appPin.length == 4) this.appPin = appPin;
     unawaited(_savePreferences());
     notifyListeners();
   }
@@ -343,9 +366,20 @@ class AppState extends ChangeNotifier {
       await preferences.setString(_defaultTypeKey, defaultType);
       await preferences.setBool(_appLockEnabledKey, appLockEnabled);
       await preferences.setBool(_biometricEnabledKey, biometricEnabled);
+      await preferences.setBool(_onboardingCompletedKey, onboardingCompleted);
+      await preferences.setString(_appPinKey, appPin);
+      await preferences.setBool(_appPinConfiguredKey, appPinConfigured);
     } on MissingPluginException catch (error) {
       debugPrint('Preferencias no disponibles en esta ejecución: $error');
     }
+  }
+
+  Future<void> setAppPin(String pin) async {
+    if (!RegExp(r'^\d{4}$').hasMatch(pin)) {
+      throw const FormatException('El código debe tener 4 dígitos.');
+    }
+    appPinConfigured = true;
+    updatePreferences(appPin: pin, appLockEnabled: true);
   }
 
   void addCapture({
@@ -414,6 +448,29 @@ class AppState extends ChangeNotifier {
   void removeCapture(String id) {
     _captures.removeWhere((capture) => capture.id == id);
     _persist(AppDatabase.instance.deleteCapture(id), 'eliminar la captura');
+    notifyListeners();
+  }
+
+  void updateCapture({
+    required String id,
+    required String title,
+    required String type,
+    required String project,
+    required String priority,
+    required List<String> tags,
+  }) {
+    final index = _captures.indexWhere((capture) => capture.id == id);
+    if (index == -1) return;
+    final capture = _captures[index]
+      ..title = title.trim()
+      ..type = normalizeCaptureType(type)
+      ..project = project
+      ..priority = priority
+      ..tags = List.unmodifiable(tags);
+    _persist(
+      AppDatabase.instance.upsertCapture(_captureRow(capture)),
+      'actualizar la captura',
+    );
     notifyListeners();
   }
 

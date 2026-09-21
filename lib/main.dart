@@ -20,8 +20,51 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  final navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed ||
+        !AppState.instance.onboardingCompleted ||
+        !AppState.instance.appLockEnabled ||
+        !AppState.instance.appPinConfigured) {
+      return;
+    }
+    if (AppState.instance.skipNextLockAfterBiometric) {
+      AppState.instance.skipNextLockAfterBiometric = false;
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navigator = navigatorKey.currentState;
+      if (navigator == null) return;
+      var isLockScreen = false;
+      navigator.popUntil((route) {
+        isLockScreen = route.settings.name == '/lock';
+        return true;
+      });
+      if (!isLockScreen) navigator.pushNamed('/lock');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +88,7 @@ class MyApp extends StatelessWidget {
           duration: const Duration(milliseconds: 420),
           curve: Curves.easeInOutCubic,
           child: MaterialApp(
+            navigatorKey: navigatorKey,
             title: 'Ideon',
             debugShowCheckedModeBanner: false,
             theme: activeTheme,

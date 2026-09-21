@@ -298,7 +298,9 @@ class _SearchScreenState extends State<SearchScreen> {
                           boxShadow: [
                             if (_focusNode.hasFocus)
                               BoxShadow(
-                                color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                                color: const Color(
+                                  0xFF6366F1,
+                                ).withValues(alpha: 0.2),
                                 blurRadius: 12,
                               ),
                           ],
@@ -523,6 +525,7 @@ class _SearchScreenState extends State<SearchScreen> {
               subtitle: project.description,
               badge: 'Proyecto',
               badgeColor: const Color(0xFF6366F1),
+              projectName: project.name,
             ),
           ),
         ],
@@ -537,6 +540,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   '${capture.project} · ${_displayType(capture.type)} · ${capture.tags.join(', ')}',
               badge: _displayType(capture.type),
               badgeColor: capture.iconColor,
+              capture: capture,
             ),
           ),
         ],
@@ -581,6 +585,8 @@ class _SearchScreenState extends State<SearchScreen> {
     required String subtitle,
     required String badge,
     required Color badgeColor,
+    CaptureItem? capture,
+    String? projectName,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -594,7 +600,15 @@ class _SearchScreenState extends State<SearchScreen> {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            Navigator.of(context).pushNamed('/idea-detail');
+            if (capture != null) {
+              Navigator.of(
+                context,
+              ).pushNamed('/idea-detail', arguments: capture);
+            } else if (projectName != null) {
+              Navigator.of(
+                context,
+              ).pushNamed('/project-detail', arguments: projectName);
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(12),

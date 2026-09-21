@@ -19,168 +19,181 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     final descriptionController = TextEditingController();
     final technologyController = TextEditingController();
     final technologies = <String>[];
-    final created = await showDialog<bool>(
+    final projectDraft = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => IdeonModal(
-          icon: Icons.create_new_folder_outlined,
-          eyebrow: 'Espacio de trabajo',
-          title: 'Crear proyecto',
-          actions: [
-            ideonSecondaryButton(
-              label: 'Cancelar',
-              onPressed: () => Navigator.pop(context, false),
-            ),
-            const SizedBox(width: 8),
-            ideonPrimaryButton(
-              label: 'Crear proyecto',
-              icon: Icons.add_rounded,
-              onPressed: () {
-                final technology = technologyController.text.trim();
-                if (technology.isNotEmpty) technologies.add(technology);
-                Navigator.pop(context, true);
-              },
-            ),
-          ],
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                autofocus: true,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                decoration: ideonInputDecoration(
-                  label: 'Nombre del proyecto',
-                  icon: Icons.folder_outlined,
-                  hint: 'ej. Aplicación de finanzas personales',
-                ),
+      builder: (context) => MediaQuery.removeViewInsets(
+        context: context,
+        removeBottom: true,
+        child: StatefulBuilder(
+          builder: (context, setModalState) => IdeonModal(
+            icon: Icons.create_new_folder_outlined,
+            eyebrow: 'Espacio de trabajo',
+            title: 'Crear proyecto',
+            actions: [
+              ideonSecondaryButton(
+                label: 'Cancelar',
+                onPressed: () => Navigator.pop(context),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descriptionController,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                maxLines: 3,
-                decoration: ideonInputDecoration(
-                  label: 'Descripción',
-                  icon: Icons.notes_outlined,
-                  hint: '¿Qué estás construyendo?',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: technologyController,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                decoration: ideonInputDecoration(
-                  label: 'Tecnologías',
-                  icon: Icons.code_rounded,
-                  hint: 'ej. Flutter, Firebase, Figma',
-                ),
-                onSubmitted: (value) {
-                  final technology = value.trim();
-                  if (technology.isEmpty) return;
-                  setModalState(() {
-                    technologies.add(technology);
-                    technologyController.clear();
+              const SizedBox(width: 8),
+              ideonPrimaryButton(
+                label: 'Crear proyecto',
+                icon: Icons.add_rounded,
+                onPressed: () {
+                  final technology = technologyController.text.trim();
+                  if (technology.isNotEmpty) technologies.add(technology);
+                  Navigator.pop(context, {
+                    'name': nameController.text,
+                    'description': descriptionController.text,
+                    'technologies': List<String>.from(technologies),
                   });
                 },
               ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: ['Flutter', 'Dart', 'Firebase', 'Supabase', 'Figma']
-                      .map(
-                        (technology) => ActionChip(
-                          label: Text(technology),
-                          onPressed: () {
-                            if (technologies.contains(technology)) return;
-                            setModalState(() => technologies.add(technology));
-                          },
-                          backgroundColor:
-                              Theme.of(context).brightness == Brightness.light
-                              ? const Color(0xFFF0F4FA)
-                              : Theme.of(context).cardColor,
-                          side: BorderSide(
-                            color:
-                                Theme.of(context).brightness == Brightness.light
-                                ? const Color(0xFFD5DFEC)
-                                : const Color(0xFF263A5D),
-                          ),
-                          labelStyle: TextStyle(
-                            color:
-                                Theme.of(context).brightness == Brightness.light
-                                ? const Color(0xFF52627A)
-                                : const Color(0xFF93C5FD),
-                            fontSize: 11,
-                          ),
-                        ),
-                      )
-                      .toList(),
+            ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  decoration: ideonInputDecoration(
+                    label: 'Nombre del proyecto',
+                    icon: Icons.folder_outlined,
+                    hint: 'ej. Aplicación de finanzas personales',
+                  ),
                 ),
-              ),
-              if (technologies.isNotEmpty) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descriptionController,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  maxLines: 3,
+                  decoration: ideonInputDecoration(
+                    label: 'Descripción',
+                    icon: Icons.notes_outlined,
+                    hint: '¿Qué estás construyendo?',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: technologyController,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  decoration: ideonInputDecoration(
+                    label: 'Tecnologías',
+                    icon: Icons.code_rounded,
+                    hint: 'ej. Flutter, Firebase, Figma',
+                  ),
+                  onSubmitted: (value) {
+                    final technology = value.trim();
+                    if (technology.isEmpty) return;
+                    setModalState(() {
+                      technologies.add(technology);
+                      technologyController.clear();
+                    });
+                  },
+                ),
+                const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Wrap(
                     spacing: 6,
-                    runSpacing: 6,
-                    children: technologies
-                        .map(
-                          (technology) => InputChip(
-                            label: Text(technology),
-                            onDeleted: () => setModalState(
-                              () => technologies.remove(technology),
-                            ),
-                            backgroundColor:
-                                Theme.of(context).brightness == Brightness.light
-                                ? const Color(0xFFF0F4FA)
-                                : const Color(0xFF17243B),
-                            labelStyle: TextStyle(
-                              color:
+                    runSpacing: 4,
+                    children:
+                        ['Flutter', 'Dart', 'Firebase', 'Supabase', 'Figma']
+                            .map(
+                              (technology) => ActionChip(
+                                label: Text(technology),
+                                onPressed: () {
+                                  if (technologies.contains(technology)) return;
+                                  setModalState(
+                                    () => technologies.add(technology),
+                                  );
+                                },
+                                backgroundColor:
+                                    Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? const Color(0xFFF0F4FA)
+                                    : Theme.of(context).cardColor,
+                                side: BorderSide(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.light
+                                      ? const Color(0xFFD5DFEC)
+                                      : const Color(0xFF263A5D),
+                                ),
+                                labelStyle: TextStyle(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.light
+                                      ? const Color(0xFF52627A)
+                                      : const Color(0xFF93C5FD),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                ),
+                if (technologies.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: technologies
+                          .map(
+                            (technology) => InputChip(
+                              label: Text(technology),
+                              onDeleted: () => setModalState(
+                                () => technologies.remove(technology),
+                              ),
+                              backgroundColor:
+                                  Theme.of(context).brightness ==
+                                      Brightness.light
+                                  ? const Color(0xFFF0F4FA)
+                                  : const Color(0xFF17243B),
+                              labelStyle: TextStyle(
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? const Color(0xFF52627A)
+                                    : const Color(0xFFBFDBFE),
+                                fontSize: 12,
+                              ),
+                              deleteIconColor:
                                   Theme.of(context).brightness ==
                                       Brightness.light
                                   ? const Color(0xFF52627A)
-                                  : const Color(0xFFBFDBFE),
-                              fontSize: 12,
+                                  : const Color(0xFF93C5FD),
                             ),
-                            deleteIconColor:
-                                Theme.of(context).brightness == Brightness.light
-                                ? const Color(0xFF52627A)
-                                : const Color(0xFF93C5FD),
-                          ),
-                        )
-                        .toList(),
+                          )
+                          .toList(),
+                    ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
     );
-    final name = nameController.text;
-    final description = descriptionController.text;
-    final selectedTechnologies = List<String>.from(technologies);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      nameController.dispose();
-      descriptionController.dispose();
-      technologyController.dispose();
-    });
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    nameController.dispose();
+    descriptionController.dispose();
+    technologyController.dispose();
 
-    if (created == true && name.trim().isNotEmpty) {
+    if (projectDraft != null &&
+        (projectDraft['name'] as String).trim().isNotEmpty) {
       AppState.instance.addProject(
-        name: name,
-        description: description,
-        technologies: selectedTechnologies,
+        name: projectDraft['name'] as String,
+        description: projectDraft['description'] as String,
+        technologies: (projectDraft['technologies'] as List).cast<String>(),
       );
     }
   }
@@ -304,58 +317,60 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                       IconButton(
                         onPressed: () =>
                             Navigator.of(context).pushReplacementNamed('/home'),
-                        icon: Icon(Icons.arrow_back_rounded),
+                        icon: const Icon(Icons.arrow_back_rounded),
                         color: const Color(0xFF8E9BAE),
                         tooltip: 'Volver al inicio',
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 4,
-                                height: 22,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF6366F1),
-                                  borderRadius: BorderRadius.circular(2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(
-                                        0xFF6366F1,
-                                      ).withValues(alpha: 0.8),
-                                      blurRadius: 10,
-                                    ),
-                                  ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 4,
+                                  height: 22,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF6366F1),
+                                    borderRadius: BorderRadius.circular(2),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF6366F1,
+                                        ).withValues(alpha: 0.8),
+                                        blurRadius: 10,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Proyectos',
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Proyectos',
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 14),
+                              child: Text(
+                                'Todo lo que estás construyendo.',
                                 style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface,
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
+                                  color: Color(0xFF8E9BAE),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Padding(
-                            padding: EdgeInsets.only(left: 14),
-                            child: Text(
-                              'Todo lo que estás construyendo.',
-                              style: TextStyle(
-                                color: Color(0xFF8E9BAE),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400,
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       // Action Button (New Project)
                       Container(
@@ -368,7 +383,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF6366F1).withValues(alpha: 0.35),
+                              color: const Color(
+                                0xFF6366F1,
+                              ).withValues(alpha: 0.35),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -380,9 +397,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                             borderRadius: BorderRadius.circular(10),
                             onTap: _createProject,
                             child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 9,
                               ),
                               child: Row(
                                 children: [
@@ -397,7 +414,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w600,
-                                      fontSize: 13,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ],

@@ -244,7 +244,9 @@ class _QuickCaptureScreenState extends State<QuickCaptureScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
@@ -755,9 +757,8 @@ class _QuickCaptureScreenState extends State<QuickCaptureScreen> {
         ),
       ),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.dispose();
-    });
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    controller.dispose();
     if (tag != null && tag.trim().isNotEmpty && mounted) {
       setState(() => _tags.add(tag.trim()));
     }

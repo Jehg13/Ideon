@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../app_state.dart';
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -11,6 +12,12 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0; // 0: Pantalla 1, 1: Pantalla 2, 2: Pantalla 3
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +49,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       SizedBox(
                         width: 24,
                         height: 24,
-                        child: CustomPaint(painter: SmallIdeonLogoPainter()),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.asset('image.png', fit: BoxFit.cover),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -67,7 +77,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         );
                       },
                       child: Text(
-                        'Skip',
+                        'Saltar',
                         style: TextStyle(
                           color: Color(0xFF64748B), // Cool Gray
                           fontSize: 14,
@@ -161,6 +171,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           curve: Curves.easeInOut,
                         );
                       } else {
+                        AppState.instance.updatePreferences(
+                          onboardingCompleted: true,
+                        );
                         Navigator.of(context).pushReplacementNamed('/home');
                       }
                     },
@@ -263,7 +276,7 @@ class Onboarding3Content extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Build what matters.',
+                'Construye lo que importa.',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 28,
@@ -274,7 +287,7 @@ class Onboarding3Content extends StatelessWidget {
               ),
               SizedBox(height: 10),
               Text(
-                'Turn your ideas into improvements, tasks and projects you can actually build.',
+                'Convierte tus ideas en mejoras, tareas y proyectos que realmente puedas construir.',
                 style: TextStyle(
                   color: Color(0xFF94A3B8), // Cool Gray
                   fontSize: 15,
@@ -316,7 +329,7 @@ class Onboarding3Content extends StatelessWidget {
                   Icon(Icons.auto_awesome, size: 14, color: Color(0xFF38BDF8)),
                   SizedBox(width: 6),
                   Text(
-                    'CONVERTED TO TASK',
+                    'CONVERTIDO EN TAREA',
                     style: TextStyle(
                       color: Color(0xFF38BDF8),
                       fontSize: 10,
@@ -333,7 +346,7 @@ class Onboarding3Content extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'Planned',
+                  'Planeado',
                   style: TextStyle(
                     color: Color(0xFF94A3B8),
                     fontSize: 10,
@@ -345,7 +358,7 @@ class Onboarding3Content extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Add achievement system',
+            'Agregar sistema de logros',
             style: TextStyle(
               color: Colors.white,
               fontSize: 15,
@@ -355,9 +368,9 @@ class Onboarding3Content extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildMetaTag('Project', 'GymOS', const Color(0xFF818CF8)),
+              _buildMetaTag('Proyecto', 'GymOS', const Color(0xFF818CF8)),
               const SizedBox(width: 12),
-              _buildMetaTag('Type', 'Feature', const Color(0xFF60A5FA)),
+              _buildMetaTag('Tipo', 'Funcionalidad', const Color(0xFF60A5FA)),
             ],
           ),
         ],
@@ -392,74 +405,61 @@ class TechEvolutionPipeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stages = [
-      {'label': 'Spark', 'icon': Icons.flash_on_outlined},
+      {'label': 'Chispa', 'icon': Icons.flash_on_outlined},
       {'label': 'Idea', 'icon': Icons.lightbulb_outline},
-      {'label': 'Improvement', 'icon': Icons.tune_outlined},
-      {'label': 'Task', 'icon': Icons.task_alt_outlined},
-      {'label': 'Project', 'icon': Icons.folder_open_outlined},
-      {'label': 'Build', 'icon': Icons.code_rounded},
+      {'label': 'Mejora', 'icon': Icons.tune_outlined},
+      {'label': 'Tarea', 'icon': Icons.task_alt_outlined},
+      {'label': 'Proyecto', 'icon': Icons.folder_open_outlined},
+      {'label': 'Construir', 'icon': Icons.code_rounded},
     ];
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(stages.length, (index) {
-          final isLast = index == stages.length - 1;
-          final isHighlight = index == 5; // Node 'Build'
-
-          return Row(
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 10,
+      children: List.generate(stages.length, (index) {
+        final isHighlight = index == stages.length - 1;
+        return Container(
+          width: 76,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isHighlight
+                ? const Color(0xFF2563EB)
+                : const Color(0xFF101521),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isHighlight
+                  ? const Color(0xFF38BDF8)
+                  : const Color(0xFF334155),
+            ),
+          ),
+          child: Column(
             children: [
-              Column(
-                children: [
-                  Container(
-                    width: isHighlight ? 38 : 32,
-                    height: isHighlight ? 38 : 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isHighlight
-                          ? const Color(0xFF2563EB)
-                          : const Color(0xFF101521),
-                      border: Border.all(
-                        color: isHighlight
-                            ? const Color(0xFF38BDF8)
-                            : const Color(0xFF334155),
-                      ),
-                    ),
-                    child: Icon(
-                      stages[index]['icon'] as IconData,
-                      size: isHighlight ? 18 : 14,
-                      color: isHighlight
-                          ? Colors.white
-                          : const Color(0xFF94A3B8),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    stages[index]['label'] as String,
-                    style: TextStyle(
-                      color: isHighlight
-                          ? Colors.white
-                          : const Color(0xFF64748B),
-                      fontSize: 10,
-                      fontWeight: isHighlight
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                    ),
-                  ),
-                ],
+              Icon(
+                stages[index]['icon'] as IconData,
+                size: 18,
+                color: isHighlight
+                    ? Colors.white
+                    : const Color(0xFF94A3B8),
               ),
-              if (!isLast)
-                Container(
-                  width: 18,
-                  height: 1,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  color: const Color(0xFF2563EB).withValues(alpha: 0.4),
+              const SizedBox(height: 4),
+              Text(
+                stages[index]['label'] as String,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isHighlight
+                      ? Colors.white
+                      : const Color(0xFFCBD5E1),
+                  fontSize: 10,
+                  fontWeight: isHighlight
+                      ? FontWeight.w700
+                      : FontWeight.w500,
                 ),
+              ),
             ],
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 }
@@ -501,7 +501,10 @@ class Onboarding1Content extends StatelessWidget {
                   child: SizedBox(
                     width: 32,
                     height: 32,
-                    child: CustomPaint(painter: SmallIdeonLogoPainter()),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.asset('image.png', fit: BoxFit.cover),
+                    ),
                   ),
                 ),
               ),
@@ -514,7 +517,7 @@ class Onboarding1Content extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Capture every idea.',
+                'Captura cada idea.',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28,
@@ -523,7 +526,7 @@ class Onboarding1Content extends StatelessWidget {
               ),
               SizedBox(height: 10),
               Text(
-                'Your next great project can start with a single thought.',
+                'Tu próximo gran proyecto puede comenzar con un solo pensamiento.',
                 style: TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
               ),
             ],
@@ -555,10 +558,32 @@ class Onboarding2Content extends StatelessWidget {
                 ),
               ),
               const Center(
-                child: Icon(
-                  Icons.hub_outlined,
-                  color: Color(0xFF38BDF8),
-                  size: 48,
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _OnboardingTag(
+                      icon: Icons.lightbulb_outline,
+                      label: 'Ideas',
+                      color: Color(0xFF38BDF8),
+                    ),
+                    _OnboardingTag(
+                      icon: Icons.tune_rounded,
+                      label: 'Mejoras',
+                      color: Color(0xFF818CF8),
+                    ),
+                    _OnboardingTag(
+                      icon: Icons.task_alt_rounded,
+                      label: 'Tareas',
+                      color: Color(0xFF60A5FA),
+                    ),
+                    _OnboardingTag(
+                      icon: Icons.folder_outlined,
+                      label: 'Proyectos',
+                      color: Color(0xFFA78BFA),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -570,7 +595,7 @@ class Onboarding2Content extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Everything has a place.',
+                'Cada idea tiene su lugar.',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28,
@@ -579,13 +604,53 @@ class Onboarding2Content extends StatelessWidget {
               ),
               SizedBox(height: 10),
               Text(
-                'Organize ideas, improvements, bugs and pending work without slowing down your workflow.',
+                'Organiza ideas, mejoras, errores y tareas pendientes sin frenar tu flujo de trabajo.',
                 style: TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _OnboardingTag extends StatelessWidget {
+  const _OnboardingTag({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 126,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101521),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
